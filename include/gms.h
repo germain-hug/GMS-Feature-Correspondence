@@ -27,6 +27,14 @@ public:
     * @brief Apply GMS Feature Matching on both images
     */
     void match(const cv::Mat& im1, const cv::Mat& im2);
+
+    /**
+    * @name pre_process 
+    * @param[in] src Source image
+    * @param[in] dst Destination image
+    * @brief Pre-process input images
+    */
+    void pre_process(const cv::Mat& src, cv::Mat& dst);
     
     /**
     * @name computeORBMatches
@@ -34,10 +42,10 @@ public:
     * @param[in] im2 Second image
     * @brief Compute ORB Features and correspondence
     */
-    std::vector<cv::DMatch> GMS::computeORBMatches(const cv::Mat& im1, const cv::Mat& im2);
+    std::vector<cv::DMatch> computeORBMatches(const cv::Mat& im1, const cv::Mat& im2);
 
 private:
-    
+
 };
 
 #endif

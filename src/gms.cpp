@@ -9,9 +9,21 @@
 GMS::GMS(){}
 GMS::~GMS(){}
 
-void GMS::match(const cv::Mat& im1, const cv::Mat& im2)
+void GMS::match(const cv::Mat& im1_in, const cv::Mat& im2_in)
 {
-	
+	// Pre-process images
+	cv::Mat im1, im2;
+	pre_process(im1_in, im1);
+	pre_process(im2_in, im2);
+
+	// Compute ORB Matches
+	computeORBMatches(im1, im2);
+
+}
+
+void GMS::pre_process(const cv::Mat& src, cv::Mat& dst)
+{
+
 }
 
 std::vector<cv::DMatch> GMS::computeORBMatches(const cv::Mat& im1, const cv::Mat& im2)
@@ -34,5 +46,6 @@ std::vector<cv::DMatch> GMS::computeORBMatches(const cv::Mat& im1, const cv::Mat
 	FlannBasedMatcher matcher;
 	std::vector<cv::DMatch> matches;
 	matcher.match(descriptors_object, descriptors_scene, matches);
+
 	return matches;
 }

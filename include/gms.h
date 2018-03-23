@@ -25,9 +25,10 @@ public:
     * @name match 
     * @param[in] im1 First image
     * @param[in] im2 Second image
+    * @param[in] N Number of features
     * @brief Apply GMS Feature Matching on both images
     */
-    void match(const cv::Mat& im1, const cv::Mat& im2);
+    void match(const cv::Mat& im1, const cv::Mat& im2, const int& N=5000);
 
     /**
     * @name pre_process 
@@ -41,9 +42,10 @@ public:
     * @name computeORBMatches
     * @param[in] im1 First image
     * @param[in] im2 Second image
+    * @param[in] N Number of features
     * @brief Compute ORB Features and correspondence
     */
-    std::vector<cv::DMatch> computeORBMatches(const cv::Mat& im1, const cv::Mat& im2);
+    std::vector<cv::DMatch> computeORBMatches(const cv::Mat& im1, const cv::Mat& im2, const int& N);
 
 private:
 

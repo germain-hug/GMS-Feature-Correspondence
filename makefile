@@ -26,27 +26,34 @@ OBJECTS_CUDA := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES_CUDA:.$(CUDAEXT)=
 
 OBJECTS := $(OBJECTS_CPP) $(OBJECTS_CUDA)
 
-INC :=	-I/usr/local/cuda-8.0/targets/x86_64-linux/include/ \
-		-I ~/eigen/
+INC :=	-I /usr/local/include \
+		-I/usr/local/cuda-8.0/targets/x86_64-linux/include/ \
 
-LIB :=	-L/usr/local/cuda/lib64/ \
-		-L/usr/local/lib/ \
-		-lopencv_core \
-        -lopencv_imgproc \
-        -lopencv_highgui \
-        -lopencv_video \
-        -lopencv_features2d \
-        -lopencv_calib3d \
-        -lopencv_gpu \
-        -lopencv_flann \
-        -lglog \
-		-lcudart \
-        -lcublas \
-		-lcudart \
-		-lcurand \
-		-lstdc++ \
-		-ldl \
-		-lm
+LIB :=	-L /usr/local/lib \
+	-L/usr/local/cuda/lib64/ \
+	-lboost_program_options \
+	-L/usr/lib \
+	-Lbuild \
+	-lboost_iostreams \
+	-lboost_system \
+	-lboost_thread \
+	-lopencv_core \
+	-lopencv_features2d \
+	-lopencv_highgui \
+	-lopencv_imgproc \
+	-lopencv_contrib \
+	-lopencv_flann \
+	-lopencv_video \
+	-lopencv_calib3d \
+	-lpthread \
+	-lboost_python \
+	-lpython2.7 \
+	-lcudart \
+	-lcublas \
+	-lcurand \
+	-lcudnn \
+	-lstdc++ \
+	-lm
 
 $(TARGET): $(OBJECTS)
 	@mkdir -p $(TARGETDIR)

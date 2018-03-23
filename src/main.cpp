@@ -13,7 +13,7 @@ int main(int argc, char** argv){
 	// Initialize GMS Feature Matcher and run it
 	GMS gms();
 	// TODO Create custom matching structure
-	std::vector<> gms.match(im1, im2);
+	// std::vector<> gms.match(im1, im2);
 
 	return 0;
 }

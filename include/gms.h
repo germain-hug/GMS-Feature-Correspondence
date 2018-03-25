@@ -5,7 +5,7 @@
 #include <opencv2/features2d.hpp>
 #include <array>
 
-#define N 10
+#define N 20
 
 using std::string;
 
@@ -81,6 +81,16 @@ public:
     	const std::vector<cv::KeyPoint>& kp_2,
     	std::array<cellMatches, 4>& cell_matches,
     	std::array<cellBins, 4>& cell_bins);
+
+
+    /**
+    * @name filterMatches
+    * @param[in] cell_matches Previously computed cell matches
+    * @param[in] cell_bins Previously computed cell bins
+    * @brief Filter candidates on highest matching pair of cells
+    */
+    void filterMatches(const std::array<cellMatches, 4>& cell_matches,
+      const std::array<cellBins, 4>& cell_bins);
 
     int getGridIdxFromPoint(const cv::Point& pt, const int& off_x, const int& off_y, const int& dw, const int& dh);
 

@@ -10,6 +10,7 @@
 GMS::GMS(){}
 GMS::~GMS(){}
 
+// TODO : Init with pointers !!
 void GMS::init(cv::Mat& im1, cv::Mat& im2)
 {
 	// Assign images attributes
@@ -21,38 +22,31 @@ void GMS::init(cv::Mat& im1, cv::Mat& im2)
 	_h_2 = _im2.cols;
 }
 
-void GMS::match()
+
+void GMS::run()
 {
-	// Compute ORB Matches
+	// Compute ORB Feature Descriptors and Matches
   std::vector<cv::DMatch> matches;
   std::vector<cv::KeyPoint> kp_1, kp_2;
 	computeORBMatches(matches, kp_1, kp_2);
 
-	// Assign every match to its pair of cells
-	assignMatchesToCells(matches, kp_1, kp_2);
-
-	// Begin matching
-	const int grid_w_1 = _w_1 / N;
-	const int grid_h_1 = _h_1 / N;
-	const int grid_w_2 = _w_2 / N;
-	const int grid_h_2 = _h_2 / N;
+	// Assign matches to corresponding cells
+	std::array<cellMatches, 4> cell_matches;
+	std::array<cellBins, 4> cell_bins{};
+	assignMatchesToCells(matches, kp_1, kp_2, cell_matches, cell_bins);
 
 	// For cell every offset
 	float off_x, off_y;
 	for(int k = 0; k < 4; k++)
 	{
-		off_x = (k==0 || k==1) ? 0.0 : 0.5;
-		off_y = (k==0 || k==2) ? 0.0 : 0.5;
-
-		// For every pair of cells in the grid
+		computeOffset(k, off_x, off_y);
 		for(int i = 0; i < N; i++)
 		{
 			for(int j = 0; j < N; j++)
 			{
 				// Find best pair of cells
-
+				//std::cout << cell_matches[k][j].size() << std::endl;
 				// For every match in the cell
-
 			}
 		}
 	}
@@ -67,63 +61,63 @@ void GMS::computeORBMatches(std::vector<cv::DMatch>& matches,
 	 std::vector<cv::KeyPoint>& kp_2)
 {
 	// Initialize ORB Feature Descriptor
-  cv::Ptr<cv::ORB> detector = cv::ORB::create("ORB");
+	cv::Mat dsc_1, dsc_2;
+  cv::Ptr<cv::ORB> detector  = cv::ORB::create("ORB");
   cv::Ptr<cv::ORB> extractor = cv::ORB::create("ORB");
 
   // Descriptors : Image 1
-	cv::Mat descriptors_1, descriptors_2;
 	detector->detect(_im1, kp_1);
-	extractor->compute(_im1, kp_1, descriptors_1);
+	extractor->compute(_im1, kp_1, dsc_1);
 
 	// Descriptors : Image 2
 	detector->detect(_im2, kp_2);
-	extractor->compute(_im2, kp_2, descriptors_2);
+	extractor->compute(_im2, kp_2, dsc_2);
 
 	// Brute-Force matching
 	cv::BFMatcher matcher;
-	matcher.match(descriptors_1, descriptors_2, matches);
+	matcher.match(dsc_1, dsc_2, matches);
 }
+
 
 void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 	const std::vector<cv::KeyPoint>& kp_1,
-	const std::vector<cv::KeyPoint>& kp_2)
+	const std::vector<cv::KeyPoint>& kp_2,
+	std::array<cellMatches, 4>& cell_matches,
+	std::array<cellBins, 4>& cell_bins)
 {
-	// TODO : Deal with offsets !!!!
-	cellMatches cell_matches;
-	cellBins cell_bins;
+	// For every grid offset
 	float off_x, off_y;
-
-	// For every feature point match
-	for(int i = 0; i < matches.size(); i++)
+	for(int k = 0; k < 4; k++)
 	{
-		// For every grid offset
-		for(int k = 0; k < 4; k++)
-		{
-			off_x = (k==0 || k==1)? 0.0 : 0.5;
-			off_y = (k==0 || k==2)? 0.0 : 0.5;
-
-			// Find keypoint cell location in both images
-			cv::Point pt_1 = kp_1[matches[i].queryIdx].pt;
-			cv::Point pt_2 = kp_2[matches[i].trainIdx].pt;	// Offsets ???
-			int grid_idx_1 = getGridIdxFromPoint(pt_1);
-			int grid_idx_2 = getGridIdxFromPoint(pt_2);
-
-			// Instantiate cellMatch object and add to grid
-			cellMatch c
+			computeOffset(k, off_x, off_y);
+			for(int i = 0; i < matches.size(); i++)
 			{
-				matches[i].queryIdx,
-				matches[i].trainIdx,
-				grid_idx_1,
-				grid_idx_2
-			};
-			cell_matches[grid_idx_1].push_back(c);
+				// Find keypoint corresponding cell coordinates
+				cv::Point pt_1 = kp_1[matches[i].queryIdx].pt;
+				cv::Point pt_2 = kp_2[matches[i].trainIdx].pt;	// Offsets ???
+				int grid_idx_1 = getGridIdxFromPoint(pt_1, off_x, off_y, _w_1/N, _h_1/N);
+				int grid_idx_2 = getGridIdxFromPoint(pt_2, off_x, off_y, _w_2/N, _h_2/N);
 
-			// Increment match count
-			cell_bins[grid_idx_1][grid_idx_2]++;
+				std::cout << grid_idx_1 << " " << grid_idx_2 << std::endl;
+
+				// Instantiate cellMatch object and add to grid
+				cellMatch c {matches[i].queryIdx, matches[i].trainIdx, grid_idx_1, grid_idx_2};
+				cell_matches[k][grid_idx_1].push_back(c);
+
+				// Increment match count
+				cell_bins[k][grid_idx_1][grid_idx_2]++;
 		}
 	}
-
 }
+
+
+int GMS::getGridIdxFromPoint(const cv::Point& pt, const int& off_x, const int& off_y, const int& dw, const int& dh)
+{
+	 int idx_x = int( (pt.x + off_x * dw) % dw);
+	 int idx_y = int( (pt.y + off_y * dh) % dh);
+	 return idx_y * N + idx_y;
+}
+
 
 void GMS::displayMatches(const std::vector<cv::DMatch>& m,
 	const std::vector<cv::KeyPoint>& kp_1,
@@ -131,8 +125,7 @@ void GMS::displayMatches(const std::vector<cv::DMatch>& m,
 {
 	cv::Mat disp;
 	std::vector<char> mask(m.size(), 1);
-	cv::drawMatches(_im1, kp_1, _im2, kp_2, m,
-		disp, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
+	cv::drawMatches(_im1, kp_1, _im2, kp_2, m, disp, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
 	cv::imshow("Matches", disp);
 	cv::waitKey(0);
 }

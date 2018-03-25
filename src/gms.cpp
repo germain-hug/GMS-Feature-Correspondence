@@ -37,10 +37,13 @@ void GMS::run()
 	// Cell bins : Useles ???
 
 	// Threshold candidates on highest matching pairs
-	filterMatches(cell_matches, cell_bins);
+	std::vector<cv::DMatch> new_matches;
+	std::vector<cv::KeyPoint> new_kp_1, new_kp_2;
+	filterMatches(kp_1, kp_2, cell_matches, cell_bins, new_matches, new_kp_1, new_kp_2);
 
 	// Display matches
 	displayMatches(matches, kp_1, kp_2);
+	displayMatches(new_matches, new_kp_1, new_kp_2);
 }
 
 
@@ -99,11 +102,14 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 	}
 }
 
-void GMS::filterMatches(const std::array<cellMatches, 4>& cell_matches,
-const std::array<cellBins, 4>& cell_bins)
+void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
+	const std::vector<cv::KeyPoint>& kp_2,
+	const std::array<cellMatches,4>& cell_matches,
+	const std::array<cellBins,4>& cell_bins,
+	std::vector<cv::DMatch>& new_matches,
+	std::vector<cv::KeyPoint>& new_kp_1,
+	std::vector<cv::KeyPoint>& new_kp_2)
 {
-	std::vector<cv::DMatch> new_matches;
-	std::vector<cv::KeyPoint> new_kp_1, new_kp_2;
 
 	// For cell every offset
 	float off_x, off_y;
@@ -124,13 +130,15 @@ const std::array<cellBins, 4>& cell_bins)
 				}
 			}
 			// Compute inliers for the best pairs
-			// TODO : ignore if no match
-			computeInliers(cell_matches[k][i], best_dest_idx, new_matches, new_kp_1, new_kp_2);
+			if(s)
+				computeInliers(kp_1, kp_2, cell_matches[k][i], best_dest_idx, new_matches, new_kp_1, new_kp_2);
 		}
 	}
 }
 
-void GMS::computeInliers(const std::vector<cellMatch>& cell_matches,
+void GMS::computeInliers(const std::vector<cv::KeyPoint>& kp_1,
+	const std::vector<cv::KeyPoint>& kp_2,
+	const std::vector<cellMatch>& cell_matches,
 	const int& best_dest_idx,
 	std::vector<cv::DMatch>& new_matches,
 	std::vector<cv::KeyPoint>& new_kp_1,
@@ -141,8 +149,10 @@ void GMS::computeInliers(const std::vector<cellMatch>& cell_matches,
 	{
 		if(c.dst == best_dest_idx)
 		{
-			std::cout << " MATCH " << std::endl;
 			// Construct DMatch object
+			new_kp_1.push_back(kp_1[c.idx1]);
+			new_kp_2.push_back(kp_2[c.idx2]);
+			new_matches.push_back(cv::DMatch(c.idx1, c.idx2, 0.0));
 		}
 	}
 }

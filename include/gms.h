@@ -89,8 +89,13 @@ public:
     * @param[in] cell_bins Previously computed cell bins
     * @brief Filter candidates on highest matching pair of cells
     */
-    void filterMatches(const std::array<cellMatches, 4>& cell_matches,
-      const std::array<cellBins, 4>& cell_bins);
+    void filterMatches(const std::vector<cv::KeyPoint>& kp_1,
+    	const std::vector<cv::KeyPoint>& kp_2,
+      const std::array<cellMatches, 4>& cell_matches,
+      const std::array<cellBins, 4>& cell_bins,
+    	std::vector<cv::DMatch>& new_matches,
+    	std::vector<cv::KeyPoint>& new_kp_1,
+      std::vector<cv::KeyPoint>& new_kp_2);
 
     /**
     * @name computeInliers
@@ -101,7 +106,9 @@ public:
     * @param[in] new_kp_2 Keypoints in image 2 to be added
     * @brief Compute inliers within a pair of cells
     */
-    void computeInliers(const std::vector<cellMatch>& cell_matches,
+    void computeInliers(const std::vector<cv::KeyPoint>& kp_1,
+    	const std::vector<cv::KeyPoint>& kp_2,
+      const std::vector<cellMatch>& cell_matches,
     	const int& best_dest_idx,
     	std::vector<cv::DMatch>& new_matches,
     	std::vector<cv::KeyPoint>& new_kp_1,

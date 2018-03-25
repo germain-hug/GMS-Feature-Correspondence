@@ -21,10 +21,8 @@ int main(int argc, char** argv){
 	// Initialize GMS Feature Matcher and run it
 	GMS gms;
 	gms.init(im1, im2);
-	gms.match();
-
-	// Display matches
-	gms.displayMatches();
+	gms.run();
+	
 	std::cout << "Done" << std::endl;
 	return 0;
 }

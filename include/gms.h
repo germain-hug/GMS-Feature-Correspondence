@@ -65,14 +65,14 @@ public:
     	const std::vector<cv::KeyPoint>& kp_1,
     	const std::vector<cv::KeyPoint>& kp_2);
 
-    void displayMatches();
+    void displayMatches(const std::vector<cv::DMatch>& matches,
+    	const std::vector<cv::KeyPoint>& kp_1,
+    	const std::vector<cv::KeyPoint>& kp_2);
 
 private:
   cv::Mat _im1;
   cv::Mat _im2;
   int _w_1, _w_2, _h_1, _h_2;
-  std::vector<cv::DMatch> _matches;
-  std::vector<cv::KeyPoint> _kp_1, _kp_2;
 };
 
 #endif

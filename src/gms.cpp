@@ -24,10 +24,12 @@ void GMS::init(cv::Mat& im1, cv::Mat& im2)
 void GMS::match()
 {
 	// Compute ORB Matches
-	computeORBMatches(_matches, _kp_1, _kp_2);
+  std::vector<cv::DMatch> matches;
+  std::vector<cv::KeyPoint> kp_1, kp_2;
+	computeORBMatches(matches, kp_1, kp_2);
 
 	// Assign every match to its pair of cells
-	assignMatchesToCells(_matches, _kp_1, _kp_2);
+	assignMatchesToCells(matches, kp_1, kp_2);
 
 	// Begin matching
 	const int grid_w_1 = _w_1 / N;
@@ -54,6 +56,9 @@ void GMS::match()
 			}
 		}
 	}
+
+	// Display matches
+	displayMatches(matches, kp_1, kp_2);
 }
 
 
@@ -83,6 +88,7 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 	const std::vector<cv::KeyPoint>& kp_1,
 	const std::vector<cv::KeyPoint>& kp_2)
 {
+	// TODO : Deal with offsets !!!!
 	cellMatches cell_matches;
 	cellBins cell_bins;
 	float off_x, off_y;
@@ -98,7 +104,7 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 
 			// Find keypoint cell location in both images
 			cv::Point pt_1 = kp_1[matches[i].queryIdx].pt;
-			cv::Point pt_2 = kp_2[matches[i].trainIdx].pt;
+			cv::Point pt_2 = kp_2[matches[i].trainIdx].pt;	// Offsets ???
 			int grid_idx_1 = getGridIdxFromPoint(pt_1);
 			int grid_idx_2 = getGridIdxFromPoint(pt_2);
 
@@ -119,11 +125,13 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 
 }
 
-void GMS::displayMatches()
+void GMS::displayMatches(const std::vector<cv::DMatch>& m,
+	const std::vector<cv::KeyPoint>& kp_1,
+	const std::vector<cv::KeyPoint>& kp_2)
 {
 	cv::Mat disp;
-	std::vector<char> mask(_matches.size(), 1);
-	cv::drawMatches(_im1, _kp_1, _im2, _kp_2, _matches,
+	std::vector<char> mask(m.size(), 1);
+	cv::drawMatches(_im1, kp_1, _im2, kp_2, m,
 		disp, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
 	cv::imshow("Matches", disp);
 	cv::waitKey(0);

@@ -92,6 +92,31 @@ public:
     void filterMatches(const std::array<cellMatches, 4>& cell_matches,
       const std::array<cellBins, 4>& cell_bins);
 
+    /**
+    * @name computeInliers
+    * @param[in] cell_matches Previously computed cell matches
+    * @param[in] best_dest_idx Best index found
+    * @param[in] new_matches Inliers to be added
+    * @param[in] new_kp_1 Keypoints in image 1 to be added
+    * @param[in] new_kp_2 Keypoints in image 2 to be added
+    * @brief Compute inliers within a pair of cells
+    */
+    void computeInliers(const std::vector<cellMatch>& cell_matches,
+    	const int& best_dest_idx,
+    	std::vector<cv::DMatch>& new_matches,
+    	std::vector<cv::KeyPoint>& new_kp_1,
+    	std::vector<cv::KeyPoint>& new_kp_2);
+
+      /**
+      * @name computeInliers
+      * @param[in] pt Keypoint location
+      * @param[in] off_x x Offset
+      * @param[in] off_y y Offset
+      * @param[in] dw Grid cell width
+      * @param[in] dh Grid cell height
+      * @param[out] int Returned (raveled) grid index
+      * @brief Returns grid cell index from keypoint location
+      */
     int getGridIdxFromPoint(const cv::Point& pt, const int& off_x, const int& off_y, const int& dw, const int& dh);
 
     /**

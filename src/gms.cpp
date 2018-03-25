@@ -102,27 +102,47 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 void GMS::filterMatches(const std::array<cellMatches, 4>& cell_matches,
 const std::array<cellBins, 4>& cell_bins)
 {
+	std::vector<cv::DMatch> new_matches;
+	std::vector<cv::KeyPoint> new_kp_1, new_kp_2;
+
 	// For cell every offset
 	float off_x, off_y;
 	for(int k = 0; k < 4; k++)
 	{
 		computeOffset(k, off_x, off_y);
-		for(int i = 0; i < N; i++)
+		for(int i = 0; i < N * N; i++)
 		{
 			// Find the best cell match
-			int s = 0, best_idx = 0, pair_size;
-			for(int j = 0; j < N; j++)
+			int s = 0, best_dest_idx = 0, pair_size;
+			for(int j = 0; j < N * N; j++)
 			{
-				pair_size = cell_matches[k][j + i * N].size();
+				pair_size = cell_bins[k][i][j];
 				if(pair_size > s)
 				{
-					best_idx = j;
+					best_dest_idx = j;
 					s = pair_size;
 				}
 			}
-			// Compute inliers for the best subset
+			// Compute inliers for the best pairs
 			// TODO : ignore if no match
-			std::cout << i << " " << s << " " << best_idx << std::endl;
+			computeInliers(cell_matches[k][i], best_dest_idx, new_matches, new_kp_1, new_kp_2);
+		}
+	}
+}
+
+void GMS::computeInliers(const std::vector<cellMatch>& cell_matches,
+	const int& best_dest_idx,
+	std::vector<cv::DMatch>& new_matches,
+	std::vector<cv::KeyPoint>& new_kp_1,
+	std::vector<cv::KeyPoint>& new_kp_2)
+{
+	// Filter out cell matches
+	for(auto& c: cell_matches)
+	{
+		if(c.dst == best_dest_idx)
+		{
+			std::cout << " MATCH " << std::endl;
+			// Construct DMatch object
 		}
 	}
 }
@@ -130,7 +150,7 @@ const std::array<cellBins, 4>& cell_bins)
 
 int GMS::getGridIdxFromPoint(const cv::Point& pt, const int& off_x, const int& off_y, const int& dw, const int& dh)
 {
-	 int idx_x = int(pt.x + off_x * dw) / dw;
+	 int idx_x = int(pt.x + off_x * dw) / dw; // Offset impact ??
 	 int idx_y = int(pt.y + off_y * dh) / dh;
  	 return idx_y * N + idx_y;
 }

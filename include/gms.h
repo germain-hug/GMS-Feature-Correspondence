@@ -3,9 +3,26 @@
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/features2d.hpp>
+#include <array>
+
+#define N 20
+
+struct cellMatch
+{
+  int idx1; // index of keypoint in image 1
+  int idx2; // index of keypoint in image 2
+  int src; // source cell
+  int dst; // destination cell
+};
+
+// cellMatches: 2D Array of cellMatches
+typedef std::array<std::vector<cellMatch>, N*N> cellMatches;
+
+// cellBins: Count of destination cell matches
+typedef std::array<std::array<int, N*N>,  N*N> cellBins;
+
 
 using std::string;
-
 
 /**
  *  GMS Feature Matching Class
@@ -22,7 +39,7 @@ public:
 
     ~GMS();
 
-    void init(cv::Mat& im1, cv::Mat& im2, const int& N);
+    void init(cv::Mat& im1, cv::Mat& im2);
 
     /**
     * @name match
@@ -40,16 +57,22 @@ public:
     * @param[in] N Number of features
     * @brief Compute ORB Features and correspondence
     */
-    void computeORBMatches();
+    void computeORBMatches(std::vector<cv::DMatch>& matches,
+    	 std::vector<cv::KeyPoint>& kp_1,
+    	 std::vector<cv::KeyPoint>& kp_2);
+
+    void assignMatchesToCells(const std::vector<cv::DMatch>& matches,
+    	const std::vector<cv::KeyPoint>& kp_1,
+    	const std::vector<cv::KeyPoint>& kp_2);
 
     void displayMatches();
 
 private:
-  cv::Mat im1;
-  cv::Mat im2;
-  int N;
-  std::vector<cv::DMatch> matches;
-  std::vector<cv::KeyPoint> kp_1, kp_2;
+  cv::Mat _im1;
+  cv::Mat _im2;
+  int _w_1, _w_2, _h_1, _h_2;
+  std::vector<cv::DMatch> _matches;
+  std::vector<cv::KeyPoint> _kp_1, _kp_2;
 };
 
 #endif

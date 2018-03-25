@@ -17,17 +17,14 @@ int main(int argc, char** argv){
 	// Load both images
 	cv::Mat im1 = cv::imread(argv[1]);
 	cv::Mat im2 = cv::imread(argv[2]);
-	const int N = 5000;
 
 	// Initialize GMS Feature Matcher and run it
 	GMS gms;
-	gms.init(im1, im2, N);
+	gms.init(im1, im2);
 	gms.match();
+
+	// Display matches
 	gms.displayMatches();
 	std::cout << "Done" << std::endl;
-
-	// TODO Create custom matching structure
-	// std::vector<> gms.match(im1, im2);
-
 	return 0;
 }

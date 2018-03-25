@@ -6,13 +6,14 @@
 
 using std::string;
 
+
 /**
  *  GMS Feature Matching Class
  */
 class GMS
 {
 public:
-    
+
     /**
     * @name Constructor
     * @brief Initialize GMS Feature Matcher
@@ -21,23 +22,17 @@ public:
 
     ~GMS();
 
+    void init(cv::Mat& im1, cv::Mat& im2, const int& N);
+
     /**
-    * @name match 
+    * @name match
     * @param[in] im1 First image
     * @param[in] im2 Second image
     * @param[in] N Number of features
     * @brief Apply GMS Feature Matching on both images
     */
-    void match(const cv::Mat& im1, const cv::Mat& im2, const int& N=5000);
+    void match();
 
-    /**
-    * @name pre_process 
-    * @param[in] src Source image
-    * @param[in] dst Destination image
-    * @brief Pre-process input images
-    */
-    void pre_process(const cv::Mat& src, cv::Mat& dst);
-    
     /**
     * @name computeORBMatches
     * @param[in] im1 First image
@@ -45,10 +40,16 @@ public:
     * @param[in] N Number of features
     * @brief Compute ORB Features and correspondence
     */
-    std::vector<cv::DMatch> computeORBMatches(const cv::Mat& im1, const cv::Mat& im2, const int& N);
+    void computeORBMatches();
+
+    void displayMatches();
 
 private:
-
+  cv::Mat im1;
+  cv::Mat im2;
+  int N;
+  std::vector<cv::DMatch> matches;
+  std::vector<cv::KeyPoint> kp_1, kp_2;
 };
 
 #endif

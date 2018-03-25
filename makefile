@@ -18,7 +18,7 @@ INSTALLBINDIR := /usr/local/bin
 # Code Lists
 SRCEXT := cpp
 CUDAEXT := cu
-SOURCES_CPP := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT)) 
+SOURCES_CPP := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS_CPP := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES_CPP:.$(SRCEXT)=.o))
 
 SOURCES_CUDA := $(shell find $(SRCDIR) -type f -name *.$(CUDAEXT))
@@ -30,13 +30,9 @@ INC :=	-I /usr/local/include \
 		-I/usr/local/cuda-8.0/targets/x86_64-linux/include/ \
 
 LIB :=	-L /usr/local/lib \
-	-L/usr/local/cuda/lib64/ \
 	-lboost_program_options \
 	-L/usr/lib \
 	-Lbuild \
-	-lboost_iostreams \
-	-lboost_system \
-	-lboost_thread \
 	-lopencv_core \
 	-lopencv_features2d \
 	-lopencv_highgui \
@@ -48,10 +44,6 @@ LIB :=	-L /usr/local/lib \
 	-lpthread \
 	-lboost_python \
 	-lpython2.7 \
-	-lcudart \
-	-lcublas \
-	-lcurand \
-	-lcudnn \
 	-lstdc++ \
 	-lm
 
@@ -68,7 +60,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(CUDAEXT)
 
 
 clean:
-	@echo "Cleaning build/main.o..."; $(RM) build/main.o 
+	@echo "Cleaning build/main.o..."; $(RM) build/main.o
 	@echo "Cleaning $(TARGET)..."; $(RM) $(TARGET)
 
 .PHONY: clean

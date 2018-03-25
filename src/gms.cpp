@@ -3,47 +3,65 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+
+#include <iostream>
 #include "../include/gms.h"
 
 GMS::GMS(){}
 GMS::~GMS(){}
 
-void GMS::match(const cv::Mat& im1_in, const cv::Mat& im2_in, const int& N)
+void GMS::init(cv::Mat& _im1, cv::Mat& _im2, const int& _N)
 {
-	// Pre-process images
-	cv::Mat im1, im2;
-	pre_process(im1_in, im1);
-	pre_process(im2_in, im2);
+	im1 = _im1;
+	im2 = _im2;
+	N =_N;
+}
 
+void GMS::match()
+{
 	// Compute ORB Matches
-	computeORBMatches(im1, im2, N);
+	computeORBMatches();
+
+	// Compute Grid coordinates
+	computeGrid();
+
+	
+	// 1 - Compute Grid
+	// 2 - double for loops on grid
+	// 3 - assign best cell
+	// 3 - divide matches for this cell
+
+	// cv::imshow("Left", im1);
+	// cv::waitKey(0);
 }
 
-void GMS::pre_process(const cv::Mat& src, cv::Mat& dst)
-{
 
-}
-
-std::vector<cv::DMatch> GMS::computeORBMatches(const cv::Mat& im1, const cv::Mat& im2, const int& N)
+void GMS::computeORBMatches()
 {
 	// Initialize ORB Feature Descriptor
-	std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
-    cv::Ptr<cv::ORB> detector = cv::ORB::create(N);
-    cv::Ptr<cv::ORB> extractor = cv::ORB::create();
+  cv::Ptr<cv::ORB> detector = cv::ORB::create("ORB");
+  cv::Ptr<cv::ORB> extractor = cv::ORB::create("ORB");
 
-    // Descriptor
+  // Descriptors : Image 1
 	cv::Mat descriptors_1, descriptors_2;
-    detector->detect(im1, keypoints_1);
-    extractor->compute(im1, keypoints_1, descriptors_1);
-	detector->detect(im2, keypoints_2);
-	extractor->compute(im2, keypoints_2, descriptors_2);
-    // drawKeypoints(im1, keypoints_1, im1);
+	detector->detect(im1, kp_1);
+	extractor->compute(im1, kp_1, descriptors_1);
+
+	// Descriptors : Image 2
+	detector->detect(im2, kp_2);
+	extractor->compute(im2, kp_2, descriptors_2);
 
 	// Brute-Force matching
 	cv::BFMatcher matcher;
-	std::vector<cv::DMatch> matches;
 	matcher.match(descriptors_1, descriptors_2, matches);
-	return matches;
 }
 
-
+void GMS::displayMatches()
+{
+	cv::Mat disp;
+	std::vector<char> mask(matches.size(), 1);
+	cv::drawMatches(im1, kp_1, im2, kp_2, matches,
+		disp, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
+	cv::imshow("Matches", disp);
+	cv::waitKey(0);
+}

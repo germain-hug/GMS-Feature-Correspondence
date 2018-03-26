@@ -5,7 +5,7 @@
 #include <opencv2/features2d.hpp>
 #include <array>
 
-#define N 20
+#define N 15
 
 using std::string;
 
@@ -154,6 +154,9 @@ private:
   cv::Mat _im1;
   cv::Mat _im2;
   int _w_1, _w_2, _h_1, _h_2;
+  int _neighbour_x[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+  int _neighbour_y[9] = {-N, -N, -N, 0, 0, 0, N, N, N};
+  double _thresh = 0.20;
 };
 
 #endif

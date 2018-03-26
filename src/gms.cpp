@@ -34,7 +34,6 @@ void GMS::run()
 	std::array<cellMatches, 4> cell_matches;
 	std::array<cellBins, 4> cell_bins{};
 	assignMatchesToCells(matches, kp_1, kp_2, cell_matches, cell_bins);
-	// Cell bins : Useles ???
 
 	// Threshold candidates on highest matching pairs
 	std::vector<cv::DMatch> new_matches;
@@ -53,20 +52,20 @@ void GMS::computeORBMatches(std::vector<cv::DMatch>& matches,
 {
 	// Initialize ORB Feature Descriptor
 	cv::Mat dsc_1, dsc_2;
-  cv::Ptr<cv::ORB> detector  = cv::ORB::create("ORB");
-  cv::Ptr<cv::ORB> extractor = cv::ORB::create("ORB");
+	cv::OrbFeatureDetector FeatureDesc(5000, 1.2f, 8, 31, 0, 2, 1, 31);
+	cv::ORB orb;
 
   // Descriptors : Image 1
-	detector->detect(_im1, kp_1);
-	extractor->compute(_im1, kp_1, dsc_1);
-
+	orb.detect(_im1, kp_1);
+	orb.compute(_im1, kp_1, dsc_1);
 	// Descriptors : Image 2
-	detector->detect(_im2, kp_2);
-	extractor->compute(_im2, kp_2, dsc_2);
+	orb.detect(_im2, kp_2);
+	orb.compute(_im2, kp_2, dsc_2);
 
 	// Brute-Force matching
 	cv::BFMatcher matcher;
 	matcher.match(dsc_1, dsc_2, matches);
+	std::cout <<"OK" << std::endl;
 }
 
 
@@ -116,11 +115,11 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 	for(int k = 0; k < 4; k++)
 	{
 		computeOffset(k, off_x, off_y);
-		for(int i = 0; i < N * N; i++)
+		for(int i = 1; i < N * N - N; i++) // TODO deal with borders
 		{
 			// Find the best cell match
 			int s = 0, best_dest_idx = 0, pair_size;
-			for(int j = 0; j < N * N; j++)
+			for(int j = 1; j < N * N - N; j++) // TODO deal with borders
 			{
 				pair_size = cell_bins[k][i][j];
 				if(pair_size > s)
@@ -129,9 +128,18 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 					s = pair_size;
 				}
 			}
-			// Compute inliers for the best pairs
-			if(s)
-				computeInliers(kp_1, kp_2, cell_matches[k][i], best_dest_idx, new_matches, new_kp_1, new_kp_2);
+
+			// TODO Check for neighbours if neighbours have sufficient matches before adding current one (smoothness)
+			int valid_features = 0, total_features = 0, offset;
+			for(int l = 0; l < 9; l++)
+			{
+				offset = _neighbour_x[l] + _neighbour_y[l];
+				valid_features += cell_bins[k][i + offset][best_dest_idx + offset];
+				for(auto& n : cell_bins[k][i + offset]) total_features += n;
+			}
+			// Merge inliers for the best pairs
+			bool valid_cell = double(valid_features) / double(total_features) > _thresh;
+			if(s and valid_cell) computeInliers(kp_1, kp_2, cell_matches[k][i], best_dest_idx, new_matches, new_kp_1, new_kp_2);
 		}
 	}
 }
@@ -152,7 +160,8 @@ void GMS::computeInliers(const std::vector<cv::KeyPoint>& kp_1,
 			// Construct DMatch object
 			new_kp_1.push_back(kp_1[c.idx1]);
 			new_kp_2.push_back(kp_2[c.idx2]);
-			new_matches.push_back(cv::DMatch(c.idx1, c.idx2, 0.0));
+			// TODO ??  idx2 then idx1 or other way around ??
+			new_matches.push_back(cv::DMatch(c.idx1, c.idx2, 1.0));
 		}
 	}
 }

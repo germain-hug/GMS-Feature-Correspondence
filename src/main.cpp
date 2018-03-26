@@ -22,7 +22,7 @@ int main(int argc, char** argv){
 	GMS gms;
 	gms.init(im1, im2);
 	gms.run();
-	
+
 	std::cout << "Done" << std::endl;
 	return 0;
 }

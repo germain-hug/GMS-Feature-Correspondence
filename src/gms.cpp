@@ -5,6 +5,8 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
+#include <iomanip>
+
 #include "../include/gms.h"
 
 GMS::GMS(){}
@@ -28,6 +30,7 @@ void GMS::init(cv::Mat& im1, cv::Mat& im2)
 void GMS::run()
 {
 	// Compute ORB Feature Descriptors and Matches
+	double start = std::clock();
   std::vector<cv::DMatch> matches;
   std::vector<cv::KeyPoint> kp_1, kp_2;
 	computeORBMatches(matches, kp_1, kp_2);
@@ -41,8 +44,16 @@ void GMS::run()
 	std::vector<cv::DMatch> new_matches;
 	filterMatches(kp_1, kp_2, matches, cell_matches, cell_bins, new_matches);
 
+	// Print results
+	std::cout << "----------------------------------" << std::endl;
+	std::cout << std::left << std::setw(25) << "Grid size: " << N << std::endl;
+	std::cout << std::left << std::setw(25) << "Feature Points (ORB): " << matches.size() << std::endl;
+	std::cout << std::left << std::setw(25) << "Feature Points (GMS): " << new_matches.size() << std::endl;
+	std::cout << std::left << std::setw(25) << "Runtime: " << (std::clock() - start)/(double)CLOCKS_PER_SEC << std::endl;
+	std::cout << "----------------------------------" << std::endl;
+
 	// Display matches
-	displayMatches(matches, kp_1, kp_2);
+	// displayMatches(matches, kp_1, kp_2);
 	displayMatches(new_matches, kp_1, kp_2);
 }
 
@@ -145,6 +156,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 			// Inlier thresholding (motion smoothness)
 			int valid_features = 0, total_features = 0, offset;
 			bool valid_offset;
+
 			for(int l = 0; l < 9; l++)
 			{
 				offset = _neighbour_x[l] + _neighbour_y[l];

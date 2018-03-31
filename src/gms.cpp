@@ -115,10 +115,9 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 		computeOffset(k, off_x, off_y);
 		std::vector<std::array<int, 3>> intermediate_matches;
 
-		// TODO deal with borders
+		// Find best cell match (forward)
 		for(int i = 0; i < N * N; i++)
 		{
-			// Find best destination cell match
 			int s = 0, best_dest_idx = 0;
 			for(int j = 1; j < N * N - N; j++)
 			{
@@ -128,24 +127,10 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 					s = cell_bins[k][i][j];
 				}
 			}
-
-			int valid_features = 0, total_features = 0, offset;
-			for(int l = 0; l < 9; l++)
-			{
-				offset = _neighbour_x[l] + _neighbour_y[l];
-				if(i + offset > 0 && i + offset < N*N && best_dest_idx + offset > 0 && best_dest_idx + offset < N*N)
-				{
-					valid_features += cell_bins[k][i + offset][best_dest_idx + offset];
-					for(const auto& n : cell_bins[k][i + offset]) total_features += n;
-				}
-			}
-			// Merge inliers for the best pairs
-			bool valid_cell = double(valid_features) / double(total_features) > _thresh;
-			if(s and valid_cell) intermediate_matches.push_back({i, best_dest_idx, s});
+			if(s) intermediate_matches.push_back({i, best_dest_idx, s});
 		}
 
-
-		// BACKWARD PASS
+		// Find best cell match (backward)
 		for(int i = 0; i < N*N; i++)
 		{
 			int s = 0, best_dest_idx = 0;
@@ -157,7 +142,21 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 					best_dest_idx = im[0];
  				}
 			}
-			if(s) computeInliers(kp_1, kp_2, matches, cell_matches[k][best_dest_idx], i, new_matches, new_kp_1, new_kp_2);
+			
+			// Inlier thresholding (motion smoothness)
+			int valid_features = 0, total_features = 0, offset;
+			for(int l = 0; l < 9; l++)
+			{
+				offset = _neighbour_x[l] + _neighbour_y[l];
+				if(i + offset > 0 && i + offset < N*N && best_dest_idx + offset > 0 && best_dest_idx + offset < N*N)
+				{
+					valid_features += cell_bins[k][best_dest_idx + offset][i + offset];
+					for(const auto& n : cell_bins[k][best_dest_idx + offset]) total_features += n;
+				}
+			}
+			// Merge inliers for the best pairs
+			bool valid_cell = double(valid_features) / double(total_features) > _thresh;
+			if(s and valid_cell) computeInliers(kp_1, kp_2, matches, cell_matches[k][best_dest_idx], i, new_matches, new_kp_1, new_kp_2);
 		}
 	}
 }

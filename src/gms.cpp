@@ -39,8 +39,7 @@ void GMS::run()
 
 	// Threshold candidates on highest matching pairs
 	std::vector<cv::DMatch> new_matches;
-	std::vector<cv::KeyPoint> new_kp_1, new_kp_2;
-	filterMatches(kp_1, kp_2, matches, cell_matches, cell_bins, new_matches, new_kp_1, new_kp_2);
+	filterMatches(kp_1, kp_2, matches, cell_matches, cell_bins, new_matches);
 
 	// Display matches
 	displayMatches(matches, kp_1, kp_2);
@@ -76,24 +75,26 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& matches,
 {
 	// For every grid offset
 	float off_x, off_y;
-	int G_idx_1, G_idx_2;
+	int gIdx_1, gIdx_2, kIdx_1, kIdx_2;
 
 	for(int k = 0; k < 4; k++)
 	{
 			computeOffset(k, off_x, off_y);
 			for(int i = 0; i < matches.size(); i++)
 			{
-				// Keypoint index
-				int idx_1 = matches[i].queryIdx;
-				int idx_2 = matches[i].trainIdx;
-				// Source cell
-				G_idx_1 = getGridIdxFromPoint(kp_1[idx_1].pt, off_x, off_y, _im1->cols / N, _im1->rows / N);
-				// Destination cell
-				G_idx_2 = getGridIdxFromPoint(kp_2[idx_2].pt, off_x, off_y, _im2->cols / N, _im2->rows / N);
+				// Keypoint indices
+				kIdx_1 = matches[i].queryIdx;
+				kIdx_2 = matches[i].trainIdx;
+
+				// Source and destination cells
+				gIdx_1 = getGridIdxFromPoint(kp_1[kIdx_1].pt, off_x, off_y, _im1->cols / N, _im1->rows / N);
+				gIdx_2 = getGridIdxFromPoint(kp_2[kIdx_2].pt, off_x, off_y, _im2->cols / N, _im2->rows / N);
+
 				// Instantiate cellMatch object and add to grid
-				cell_matches[k][G_idx_1].push_back({G_idx_1, G_idx_2, kp_1[i], kp_2[i], matches[i]});
+				cell_matches[k][gIdx_1].push_back({gIdx_1, gIdx_2, kp_1[kIdx_1], kp_2[kIdx_2], matches[i]});
+
 				// Increment match count
-				cell_bins[k][G_idx_1][G_idx_2]++;
+				cell_bins[k][gIdx_1][gIdx_2]++;
 		}
 	}
 }
@@ -103,9 +104,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 	const std::vector<cv::DMatch>& matches,
 	const std::array<cellMatches,4>& cell_matches,
 	const std::array<cellBins,4>& cell_bins,
-	std::vector<cv::DMatch>& new_matches,
-	std::vector<cv::KeyPoint>& new_kp_1,
-	std::vector<cv::KeyPoint>& new_kp_2)
+	std::vector<cv::DMatch>& new_matches)
 {
 
 	// For cell every offset
@@ -115,11 +114,11 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 		computeOffset(k, off_x, off_y);
 		std::vector<std::array<int, 3>> intermediate_matches;
 
-		// Find best cell match (forward)
+		// Find best cell match (Forward)
 		for(int i = 0; i < N * N; i++)
 		{
 			int s = 0, best_dest_idx = 0;
-			for(int j = 1; j < N * N - N; j++)
+			for(int j = 0; j < N * N; j++)
 			{
 				if(cell_bins[k][i][j] > s)
 				{
@@ -130,7 +129,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 			if(s) intermediate_matches.push_back({i, best_dest_idx, s});
 		}
 
-		// Find best cell match (backward)
+		// Find best cell match (Backward)
 		for(int i = 0; i < N*N; i++)
 		{
 			int s = 0, best_dest_idx = 0;
@@ -142,48 +141,49 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 					best_dest_idx = im[0];
  				}
 			}
-			
+
 			// Inlier thresholding (motion smoothness)
 			int valid_features = 0, total_features = 0, offset;
+			bool valid_offset;
 			for(int l = 0; l < 9; l++)
 			{
 				offset = _neighbour_x[l] + _neighbour_y[l];
-				if(i + offset > 0 && i + offset < N*N && best_dest_idx + offset > 0 && best_dest_idx + offset < N*N)
+				valid_offset = i + offset > 0
+					&& i + offset < N*N
+					&& best_dest_idx + offset > 0
+					&& best_dest_idx + offset < N*N;
+
+				if(valid_offset)
 				{
 					valid_features += cell_bins[k][best_dest_idx + offset][i + offset];
 					for(const auto& n : cell_bins[k][best_dest_idx + offset]) total_features += n;
 				}
 			}
+
 			// Merge inliers for the best pairs
 			bool valid_cell = double(valid_features) / double(total_features) > _thresh;
-			if(s and valid_cell) computeInliers(kp_1, kp_2, matches, cell_matches[k][best_dest_idx], i, new_matches, new_kp_1, new_kp_2);
+			if(s && valid_cell) computeInliers(kp_1, kp_2, cell_matches[k][best_dest_idx], i, new_matches);
 		}
 	}
 }
 
 void GMS::computeInliers(const std::vector<cv::KeyPoint>& kp_1,
 	const std::vector<cv::KeyPoint>& kp_2,
-	const std::vector<cv::DMatch>& matches,
 	const std::vector<cellMatch>& cell_matches,
-	const int& best_dest_idx,
-	std::vector<cv::DMatch>& new_matches,
-	std::vector<cv::KeyPoint>& new_kp_1,
-	std::vector<cv::KeyPoint>& new_kp_2)
+	const int& dst_idx,
+	std::vector<cv::DMatch>& new_matches)
 {
-	// Filter out keypoints from cell matches
-	for(auto& c: cell_matches)
-	{
-		if(c.dst == best_dest_idx)
-		{
-			new_kp_1.push_back(c.kp_1);
-			new_kp_2.push_back(c.kp_2);
+	for(const auto& c: cell_matches)
+		if(c.dst == dst_idx)
 			new_matches.push_back(c.m);
-		}
-	}
 }
 
 
-int GMS::getGridIdxFromPoint(const cv::Point& pt, const int& off_x, const int& off_y, const int& dw, const int& dh)
+int GMS::getGridIdxFromPoint(const cv::Point& pt,
+	const int& off_x,
+	const int& off_y,
+	const int& dw,
+	const int& dh)
 {
 	 int idx_x = int(pt.x + off_x * dw) / dw;
 	 int idx_y = int(pt.y + off_y * dh) / dh;
@@ -195,9 +195,9 @@ void GMS::displayMatches(const std::vector<cv::DMatch>& m,
 	const std::vector<cv::KeyPoint>& kp_1,
 	const std::vector<cv::KeyPoint>& kp_2)
 {
-	cv::Mat disp;
+	cv::Mat result;
 	std::vector<char> mask(m.size(), 1);
-	cv::drawMatches(*_im1, kp_1, *_im2, kp_2, m, disp, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
-	cv::imshow("Matches", disp);
+	cv::drawMatches(*_im1, kp_1, *_im2, kp_2, m, result, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
+	cv::imshow("Matches", result);
 	cv::waitKey(0);
 }

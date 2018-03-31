@@ -16,11 +16,11 @@ struct cellMatch
   int src;
   /** Destination cell index */
   int dst;
-  /** */
+  /** Source Keypoint */
   cv::KeyPoint kp_1;
-  /** */
+  /** Destination Keypoint */
   cv::KeyPoint kp_2;
-  /** */
+  /** DMatch object */
   cv::DMatch m;
 };
 
@@ -96,9 +96,7 @@ public:
       const std::vector<cv::DMatch>& matches,
       const std::array<cellMatches, 4>& cell_matches,
       const std::array<cellBins, 4>& cell_bins,
-    	std::vector<cv::DMatch>& new_matches,
-    	std::vector<cv::KeyPoint>& new_kp_1,
-      std::vector<cv::KeyPoint>& new_kp_2);
+    	std::vector<cv::DMatch>& new_matches);
 
     /**
     * @name computeInliers
@@ -111,12 +109,9 @@ public:
     */
     void computeInliers(const std::vector<cv::KeyPoint>& kp_1,
     	const std::vector<cv::KeyPoint>& kp_2,
-      const std::vector<cv::DMatch>& matches,
       const std::vector<cellMatch>& cell_matches,
-    	const int& best_dest_idx,
-    	std::vector<cv::DMatch>& new_matches,
-    	std::vector<cv::KeyPoint>& new_kp_1,
-    	std::vector<cv::KeyPoint>& new_kp_2);
+    	const int& dst_idx,
+    	std::vector<cv::DMatch>& new_matches);
 
       /**
       * @name computeInliers

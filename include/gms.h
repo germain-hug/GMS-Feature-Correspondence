@@ -5,21 +5,23 @@
 #include <opencv2/features2d.hpp>
 #include <array>
 
-#define N 15
+#define N 8
 
 using std::string;
 
 /** Keypoint cell matching description */
 struct cellMatch
 {
-  /** Index of keypoint in image 1 */
-  int idx1;
-  /** Index of keypoint in image 2 */
-  int idx2;
   /** Source cell index */
   int src;
   /** Destination cell index */
   int dst;
+  /** */
+  cv::KeyPoint kp_1;
+  /** */
+  cv::KeyPoint kp_2;
+  /** */
+  cv::DMatch m;
 };
 
 /** cellMatches: 2D Array of cellMatches */
@@ -60,9 +62,9 @@ public:
 
     /**
     * @name computeORBMatches
-    * @param[in] matches Vector of matches (to be filled)
-    * @param[in] kp_1 Keypoints in image 1 (to be filled)
-    * @param[in] kp_2 Keypoints in image 2 (to be filled)
+    * @param[in] matches Vector of matches
+    * @param[in] kp_1 Keypoints in image 1
+    * @param[in] kp_2 Keypoints in image 2
     * @brief Compute ORB Features and correspondence on initialized images
     */
     void computeORBMatches(std::vector<cv::DMatch>& matches,
@@ -91,6 +93,7 @@ public:
     */
     void filterMatches(const std::vector<cv::KeyPoint>& kp_1,
     	const std::vector<cv::KeyPoint>& kp_2,
+      const std::vector<cv::DMatch>& matches,
       const std::array<cellMatches, 4>& cell_matches,
       const std::array<cellBins, 4>& cell_bins,
     	std::vector<cv::DMatch>& new_matches,
@@ -108,6 +111,7 @@ public:
     */
     void computeInliers(const std::vector<cv::KeyPoint>& kp_1,
     	const std::vector<cv::KeyPoint>& kp_2,
+      const std::vector<cv::DMatch>& matches,
       const std::vector<cellMatch>& cell_matches,
     	const int& best_dest_idx,
     	std::vector<cv::DMatch>& new_matches,
@@ -156,7 +160,7 @@ private:
   int _w_1, _w_2, _h_1, _h_2;
   int _neighbour_x[9] = {-1, 0, 1, -1, 0, 1, -1, 0, 1};
   int _neighbour_y[9] = {-N, -N, -N, 0, 0, 0, N, N, N};
-  double _thresh = 0.20;
+  double _thresh = 0.0;
 };
 
 #endif

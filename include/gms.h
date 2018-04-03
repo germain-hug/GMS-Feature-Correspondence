@@ -5,7 +5,7 @@
 #include <opencv2/features2d.hpp>
 #include <array>
 
-#define N 8
+#define N 10
 
 using std::string;
 
@@ -164,7 +164,7 @@ private:
   /** Y-axis cell neighbours */
   int _neighbour_y[9] = {-N, -N, -N, 0, 0, 0, N, N, N};
   /** Inlier thresholding factor */
-  double _thresh = 0.1;
+  double _thresh = 0.15;
 };
 
 #endif

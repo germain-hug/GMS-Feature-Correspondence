@@ -18,8 +18,13 @@ GMS::~GMS()
 }
 
 // TODO : Smart pointers ??
-// TODO : Check ORB params
+// TODO : cv::Ptr
+// TODO : Remove circles display
+// TODO : Check for std::max_elements alternatives
+// TODO : Check for C++ 11 / 14 incorporations
+// TODO : Push changes
 // TODO : Cell rotations
+// TODO : CUDA matches ?
 
 void GMS::init(cv::Mat& im1, cv::Mat& im2)
 {
@@ -34,8 +39,10 @@ void GMS::run()
   std::vector<cv::DMatch> matches;
   std::vector<cv::KeyPoint> kp_1, kp_2;
 	computeORBMatches(matches, kp_1, kp_2);
+	double orbComputeTime = (std::clock() - start)/(double)CLOCKS_PER_SEC;
 
 	// Assign feature points to their corresponding cells
+	start = std::clock();
 	std::array<cellMatches, 4> cell_matches;
 	std::array<cellBins, 4> cell_bins{};
 	assignMatchesToCells(matches, kp_1, kp_2, cell_matches, cell_bins);
@@ -43,13 +50,15 @@ void GMS::run()
 	// Threshold candidates on highest matching pairs
 	std::vector<cv::DMatch> new_matches;
 	filterMatches(kp_1, kp_2, matches, cell_matches, cell_bins, new_matches);
+	double gmsComputeTime = (std::clock() - start)/(double)CLOCKS_PER_SEC;
 
 	// Print results
 	std::cout << "----------------------------------" << std::endl;
 	std::cout << std::left << std::setw(25) << "Grid size: " << N << std::endl;
 	std::cout << std::left << std::setw(25) << "Feature Points (ORB): " << matches.size() << std::endl;
 	std::cout << std::left << std::setw(25) << "Feature Points (GMS): " << new_matches.size() << std::endl;
-	std::cout << std::left << std::setw(25) << "Runtime: " << (std::clock() - start)/(double)CLOCKS_PER_SEC << std::endl;
+	std::cout << std::left << std::setw(25) << "ORB Runtime: " << orbComputeTime << std::endl;
+	std::cout << std::left << std::setw(25) << "GMS Runtime: " << gmsComputeTime << std::endl;
 	std::cout << "----------------------------------" << std::endl;
 
 	// Display matches
@@ -64,8 +73,8 @@ void GMS::computeORBMatches(std::vector<cv::DMatch>& matches,
 {
 	// Initialize ORB Feature Descriptor
 	cv::Mat dsc_1, dsc_2;
-	cv::OrbFeatureDetector FeatureDesc(20000, 1.4f, 8, 64, 0, 2, 1, 64);
-	cv::ORB orb;
+	// cv::OrbFeatureDetector FeatureDesc(10000, 1.4f, 8, 64, 0, 2, 1, 64);
+	cv::ORB orb(50000, 1.2f, 4, 31, 0, 2, 1, 31);
   // Descriptors : Image 1
 	orb.detect(*_im1, kp_1);
 	orb.compute(*_im1, kp_1, dsc_1);
@@ -209,7 +218,7 @@ void GMS::displayMatches(const std::vector<cv::DMatch>& m,
 {
 	cv::Mat result;
 	std::vector<char> mask(m.size(), 1);
-	cv::drawMatches(*_im1, kp_1, *_im2, kp_2, m, result, cv::Scalar::all(255), cv::Scalar::all(255), mask, 0);
+	cv::drawMatches(*_im1, kp_1, *_im2, kp_2, m, result, cv::Scalar::all(255), cv::Scalar::all(255), mask, 2);
 	cv::imshow("Matches", result);
 	cv::waitKey(0);
 }

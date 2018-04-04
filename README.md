@@ -1,6 +1,7 @@
 # GMS: Grid-based Motion Statistics for Fast, Ultra-robust Feature Correspondence  
 
-https://raw.githubusercontent.com/germain-hug/GMS-Feature-Correspondence/master/images/orb.jpg?token=AQVHga7ZKHhtzbOih_zgOW97UQ6hx9YTks5aza1NwA%3D%3D
+Unofficial C++ implementation of the Grid-based Motion Statistics for Feature Correspondance, by Bian et al.
+[Original paper](http://jwbian.net/Papers/GMS_CVPR17.pdf)
 
 <table style="width:100%" align="center">
   <tr>

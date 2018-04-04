@@ -4,7 +4,7 @@ Unofficial C++ implementation of the Grid-based Motion Statistics for Feature Co
 [Original paper](http://jwbian.net/Papers/GMS_CVPR17.pdf)
 
 <div align="center">
-<table style="width:100%" align="center">
+<table style="width:100%; margin-left: auto;" align="center">
   <tr>
     <th><div align="center"><img width="250" src ="https://raw.githubusercontent.com/germain-hug/GMS-Feature-Correspondence/master/images/orb.jpg" /></div></th>
     <th><div align="center"><img width="250" src ="https://raw.githubusercontent.com/germain-hug/GMS-Feature-Correspondence/master/images/gms.jpg" /></div></th> 

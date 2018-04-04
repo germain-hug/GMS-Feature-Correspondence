@@ -10,21 +10,11 @@
 #include "../include/gms.h"
 
 GMS::GMS(){}
+GMS::~GMS(){}
 
-GMS::~GMS()
-{
-	delete _im1;
-	delete _im2;
-}
-
-// TODO : Smart pointers ??
-// TODO : cv::Ptr
-// TODO : Remove circles display
 // TODO : Check for std::max_elements alternatives
 // TODO : Check for C++ 11 / 14 incorporations
-// TODO : Push changes
-// TODO : Cell rotations
-// TODO : CUDA matches ?
+// TODO : Cell rotations --> array of _neighbour_x !
 
 void GMS::init(cv::Mat& im1, cv::Mat& im2)
 {
@@ -53,16 +43,15 @@ void GMS::run()
 	double gmsComputeTime = (std::clock() - start)/(double)CLOCKS_PER_SEC;
 
 	// Print results
-	std::cout << "----------------------------------" << std::endl;
-	std::cout << std::left << std::setw(25) << "Grid size: " << N << std::endl;
-	std::cout << std::left << std::setw(25) << "Feature Points (ORB): " << matches.size() << std::endl;
-	std::cout << std::left << std::setw(25) << "Feature Points (GMS): " << new_matches.size() << std::endl;
-	std::cout << std::left << std::setw(25) << "ORB Runtime: " << orbComputeTime << std::endl;
-	std::cout << std::left << std::setw(25) << "GMS Runtime: " << gmsComputeTime << std::endl;
-	std::cout << "----------------------------------" << std::endl;
+	std::cout << "+--------------------------------+" << std::endl;
+	std::cout << "| " << std::left << std::setw(22) << "Grid size: " << N << std::endl;
+	std::cout << "| " << std::left << std::setw(22) << "Feature Points (ORB): " << matches.size() << std::endl;
+	std::cout << "| " << std::left << std::setw(22) << "Feature Points (GMS): " << new_matches.size() << std::endl;
+	std::cout << "| " << std::left << std::setw(22) << "ORB Runtime: " << orbComputeTime << std::endl;
+	std::cout << "| " << std::left << std::setw(22) << "GMS Runtime: " << gmsComputeTime << std::endl;
+	std::cout << "+--------------------------------+" << std::endl;
 
 	// Display matches
-	// displayMatches(matches, kp_1, kp_2);
 	displayMatches(new_matches, kp_1, kp_2);
 }
 
@@ -72,18 +61,17 @@ void GMS::computeORBMatches(std::vector<cv::DMatch>& matches,
 	 std::vector<cv::KeyPoint>& kp_2)
 {
 	// Initialize ORB Feature Descriptor
-	cv::Mat dsc_1, dsc_2;
-	// cv::OrbFeatureDetector FeatureDesc(10000, 1.4f, 8, 64, 0, 2, 1, 64);
-	cv::ORB orb(50000, 1.2f, 4, 31, 0, 2, 1, 31);
+	cv::ORB orb(400, 1.2f, 4, 31, 0, 2, 1, 31);
   // Descriptors : Image 1
+	cv::Mat d1, d2;
 	orb.detect(*_im1, kp_1);
-	orb.compute(*_im1, kp_1, dsc_1);
+	orb.compute(*_im1, kp_1, d1);
 	// Descriptors : Image 2
 	orb.detect(*_im2, kp_2);
-	orb.compute(*_im2, kp_2, dsc_2);
+	orb.compute(*_im2, kp_2, d2);
 	// Brute-Force matching
-	cv::BFMatcher matcher;
-	matcher.match(dsc_1, dsc_2, matches);
+	cv::BFMatcher matcher(cv::NORM_HAMMING);
+	matcher.match(d1, d2, matches);
 }
 
 
@@ -93,10 +81,10 @@ void GMS::assignMatchesToCells(const std::vector<cv::DMatch>& m,
 	std::array<cellMatches, 4>& cell_matches,
 	std::array<cellBins, 4>& cell_bins)
 {
-	// For every grid offset
 	float off_x, off_y;
 	int gIdx_1, gIdx_2, kIdx_1, kIdx_2;
 
+	// Every grid offset
 	for(int k = 0; k < 4; k++)
 	{
 			computeOffset(k, off_x, off_y);
@@ -134,7 +122,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 		computeOffset(k, off_x, off_y);
 		std::vector<std::array<int, 3>> intermediate_matches;
 
-		// Find best cell match (Forward)
+		// Find best cell match (Forward-pass)
 		for(int i = 0; i < N * N; i++)
 		{
 			int s = 0, dst_idx = 0;
@@ -149,7 +137,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 			if(s) intermediate_matches.push_back({i, dst_idx, s});
 		}
 
-		// Find best cell match (Backward)
+		// Find best cell match (Backward-pass)
 		for(int i = 0; i < N*N; i++)
 		{
 			int s = 0, dst_idx = 0;
@@ -162,7 +150,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
  				}
 			}
 
-			// Inlier thresholding (motion smoothness)
+			// Inlier thresholding (neighbour-based motion smoothness)
 			int valid_features = 0, total_features = 0, offset;
 			bool valid_offset;
 
@@ -182,7 +170,7 @@ void GMS::filterMatches(const std::vector<cv::KeyPoint>& kp_1,
 			}
 
 			// Merge inliers for the best pairs
-			bool valid_cell = double(valid_features) / double(total_features) > _thresh;
+			bool valid_cell = double(valid_features) / double(total_features) > _thresh && valid_features > 5;
 			if(s && valid_cell) computeInliers(kp_1, kp_2, cell_matches[k][dst_idx], i, new_matches);
 		}
 	}

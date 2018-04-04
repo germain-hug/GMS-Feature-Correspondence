@@ -1,5 +1,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include <iostream>
 
 #include "../include/gms.h"
@@ -22,7 +24,5 @@ int main(int argc, char** argv){
 	GMS gms;
 	gms.init(im1, im2);
 	gms.run();
-
-	std::cout << "Done" << std::endl;
 	return 0;
 }

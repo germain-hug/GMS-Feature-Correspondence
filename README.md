@@ -11,10 +11,10 @@ Unofficial C++ implementation of the [Grid-based Motion Statistics for Feature C
     <th><div align="center"><img width="250" src ="https://github.com/germain-hug/GMS-Feature-Correspondence/blob/master/images/gms.gif?raw=true" /></div></th> 
   </tr>
   <tr>
-    <th> Raw ORB feature points </th>
-    <th> Feature points after GMS </th>
-    <th> Raw ORB feature points </th>
-    <th> Feature points after GMS </th>
+    <th> ORB feature points (2000) </th>
+    <th> After GMS </th>
+    <th> ORB Feature points (2000) </th>
+    <th> After GMS </th>
   </tr>
 </table>
 </div>

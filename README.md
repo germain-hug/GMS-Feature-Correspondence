@@ -18,8 +18,7 @@ This implementation requires [OpenCV 2.4.13.2](https://opencv.org/releases.html)
 
 ## Running  
 ```bash  
-mkdir build  
-make  
+mkdir build && make    
 ./GMS <path_to_image_1> <path_to_image_2>
 ```  
 

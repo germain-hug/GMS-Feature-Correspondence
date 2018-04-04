@@ -1,7 +1,6 @@
 # GMS: Grid-based Motion Statistics for Fast, Ultra-robust Feature Correspondence  
 
-Unofficial C++ implementation of the Grid-based Motion Statistics for Feature Correspondance, by Bian et al.  
-[Original paper](http://jwbian.net/Papers/GMS_CVPR17.pdf)
+Unofficial C++ implementation of the [Grid-based Motion Statistics for Feature Correspondance](http://jwbian.net/Papers/GMS_CVPR17.pdf), by Bian et al.  
 
 <div align="center">
 <table style="width:100%; margin-left: auto;" align="center">
@@ -15,3 +14,13 @@ Unofficial C++ implementation of the Grid-based Motion Statistics for Feature Co
   </tr>
 </table>
 </div>
+
+## Requirements  
+```bash  
+OpenCV 2.4.13.2
+```  
+
+## Running  
+```bash  
+./GMS <path to image 1> <path to image 2>
+```  

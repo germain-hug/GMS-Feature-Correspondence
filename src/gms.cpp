@@ -12,10 +12,6 @@
 GMS::GMS(){}
 GMS::~GMS(){}
 
-// TODO : Check for std::max_elements alternatives
-// TODO : Check for C++ 11 / 14 incorporations
-// TODO : Cell rotations --> array of _neighbour_x !
-
 void GMS::init(cv::Mat& im1, cv::Mat& im2)
 {
 	_im1 = &im1;

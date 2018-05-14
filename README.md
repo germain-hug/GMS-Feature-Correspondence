@@ -1,6 +1,7 @@
 # GMS: Grid-based Motion Statistics for Fast, Ultra-robust Feature Correspondence  
 
 Unofficial C++ implementation of the [Grid-based Motion Statistics for Feature Correspondance](http://jwbian.net/Papers/GMS_CVPR17.pdf), by Bian et al.  
+  
 The Grid-Based Moion Statistics is a method for improving the quality of feature matching, through motion-smoothness encapsulation. The smoothness constraint is expressed as a local statistical likelihood of the number of matches. This results in both real-time and very robust feature correspondence.  
 <div align="center">
 <table style="width:100%; margin-left: auto;" align="center">
